@@ -1,0 +1,45 @@
+name: New tag
+
+on:
+  workflow_dispatch:
+    inputs:
+      kind_name:
+        required: true
+        description: 'Pick target kind'
+        type: environment
+
+      prerelease_new_build:
+        required: true
+        default: true
+        type: boolean
+        description: New build for prerelease
+
+jobs:
+  create-tag:
+    name: Create tag
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup deno
+        uses: denoland/setup-deno@v1
+        with:
+          deno-version: v1.x
+
+      - name: Download script file
+        run: |
+          wget https://raw.githubusercontent.com/MiguelRipoll23/test/main/scripts/bundle.js
+        working-directory: .github
+
+      - name: Run script file
+        run: |
+          deno run --unstable --allow-env --allow-run --allow-read .github/bundle.js
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          KIND_NAME: ${{ inputs.kind_name }}
+          PRERELEASE_NEW_BUILD: ${{ inputs.prerelease_new_build }}
